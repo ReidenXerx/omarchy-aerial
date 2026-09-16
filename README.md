@@ -71,8 +71,7 @@ belongs to the screen you swiped on.
 ## Installing
 
 ```bash
-git clone https://github.com/ReidenXerx/omarchy-aerial \
-  ~/.config/omarchy/plugins/reidenxerx.aerial
+omarchy plugin add https://github.com/ReidenXerx/omarchy-aerial --enable
 omarchy-restart-shell
 ```
 
