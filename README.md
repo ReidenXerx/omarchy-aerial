@@ -95,8 +95,17 @@ travel per millisecond. A deliberate slow drag measures about 1; a real flick
 measures 3 to 4; the threshold sits at 2. Either way
 `omarchy-restart-shell` picks up the change.
 
-To give the three-finger gestures back to something else, remove the plugin
-directory and restart the shell; the gestures go with it.
+## Removing
+
+```bash
+omarchy plugin remove reidenxerx.aerial
+omarchy-restart-shell
+```
+
+The gestures go with it: they are registered at runtime, so a shell without the
+plugin registers nothing and three and four fingers belong to whoever wants them
+next. Nothing is left behind — the plugin writes no configuration and no state.
+If you added the `SUPER + A` line to `bindings.lua`, that one is yours to remove.
 
 ## How it works
 
@@ -121,6 +130,19 @@ by looking at it:
 ```bash
 node tests/layout-test.js
 ```
+
+## What it touches
+
+Nothing on disk. The plugin writes no files and keeps no state.
+
+While the shell is running it registers four touchpad gestures (three and four
+fingers, up and down) through Hyprland's own Lua API, and re-registers them
+after a config reload — the same way a runtime keybinding works. They exist only
+for as long as the plugin is loaded. It reads one path, the symlink Omarchy
+keeps its current wallpaper behind, and only uses it as an image source.
+
+It never edits your Hyprland config; the `SUPER + A` binding above is a line you
+add yourself if you want it.
 
 ## Requirements
 
