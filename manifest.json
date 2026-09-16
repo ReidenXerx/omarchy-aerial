@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "reidenxerx.aerial",
+  "name": "Aerial",
+  "version": "1.0.0",
+  "author": "ReidenXerx",
+  "license": "MIT",
+  "homepage": "https://github.com/ReidenXerx/omarchy-aerial",
+  "description": "A window overview in the shape of Mission Control: swipe up with three fingers and every window on the workspace spreads out, live, with the workspaces along the top. Click one to go to it, or drag it onto another workspace to send it there. Built on the compositor's own gestures, so it follows your fingers rather than playing an animation.",
+  "category": "productivity",
+  "tags": [
+    "overview",
+    "mission-control",
+    "gestures",
+    "touchpad",
+    "workspaces",
+    "window-switcher"
+  ],
+  "kinds": [
+    "service",
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "shell/Service.qml",
+    "overlay": "shell/Overlay.qml"
+  }
+}
