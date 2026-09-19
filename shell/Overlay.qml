@@ -255,10 +255,13 @@ Scope {
   }
 
   // Long enough that crossing the strip on the way somewhere does not flick
-  // through every desktop you pass.
+  // through every desktop you pass, and no longer. It used to be 320ms, from
+  // when a peek tore down every card and rebuilt it: the wait hid the rebuild.
+  // The cards survive a peek now, so the only thing left to cover is the
+  // pointer passing over a tile it was never aiming at.
   Timer {
     id: peeking
-    interval: 320
+    interval: 130
     onTriggered: root.peek = root.peekWanted
   }
 

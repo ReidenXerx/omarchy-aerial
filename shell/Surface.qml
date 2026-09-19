@@ -48,11 +48,28 @@ PanelWindow {
     return surface.monitor && surface.monitor.activeWorkspace ? surface.monitor.activeWorkspace.id : -1
   }
 
-  readonly property var windows: {
+  // Every window on this screen, whichever desktop it is on. This is what the
+  // cards are built from, and it deliberately does not depend on which
+  // workspace is being shown: a new array makes the Repeater throw away every
+  // delegate and build new ones, and rebuilding a live capture is exactly the
+  // hitch the snapshot above exists to avoid. Peeking used to do it on every
+  // hover, which is why the strip felt slow and flashed the desktop you were
+  // already on while the new captures caught up.
+  readonly property var monitorWindows: {
     const out = []
     for (const win of overlay.shot) {
       if (win.monitor !== surface.monitorName) continue
-      if (!overlay.everything && win.workspace !== surface.shownWorkspace) continue
+      out.push(win)
+    }
+    return out
+  }
+
+  // The ones the spread is laid out from: this desktop's, or every one of them.
+  readonly property var windows: {
+    if (overlay.everything) return surface.monitorWindows
+    const out = []
+    for (const win of surface.monitorWindows) {
+      if (win.workspace !== surface.shownWorkspace) continue
       out.push(win)
     }
     return out
@@ -62,6 +79,10 @@ PanelWindow {
   // stays alive but steps out of the spread, so typing does not tear down and
   // rebuild a live capture on every keystroke.
   readonly property var shownWindows: surface.windows.filter(w => overlay.matches(w))
+
+  // Everything on this screen that the filter leaves standing, whichever
+  // desktop it is on. What the slots are laid out from.
+  readonly property var matching: surface.monitorWindows.filter(w => overlay.matches(w))
 
   // Room for the workspace strip along the top, the way Mission Control does.
   readonly property real stripHeight: surface.leading ? Math.max(96, surface.height * 0.15) : 24
@@ -105,7 +126,7 @@ PanelWindow {
   }
 
   readonly property var slots: {
-    if (surface.shownWindows.length === 0 || surface.width <= 0) return ({})
+    if (surface.matching.length === 0 || surface.width <= 0) return ({})
     const area = {
       width: surface.width - surface.padding * 2,
       height: surface.height - surface.stripHeight - surface.padding * 2,
@@ -115,12 +136,25 @@ PanelWindow {
     const byKey = ({})
 
     if (!overlay.everything) {
-      for (const slot of Layout.spread(surface.shownWindows, area, options)) {
-        byKey[slot.key] = {
-          x: slot.x + surface.padding,
-          y: slot.y + surface.stripHeight + surface.padding,
-          w: slot.w,
-          h: slot.h,
+      // Every desktop is laid out, not just the one on screen, each into the
+      // same area. A card is therefore already standing exactly where it will
+      // be when you peek at its desktop, so peeking is a cross-fade and
+      // nothing moves.
+      //
+      // That is not only tidier, it is the whole bug: a card that animates
+      // into place travels from where the window really is, which crosses the
+      // workspace strip, which takes the pointer's hover off the tile you are
+      // pointing at, which cancels the peek, which sends the card back — and
+      // round it goes. It also means this no longer depends on which desktop
+      // is shown, so hovering the strip recomputes no layout at all.
+      for (const group of Layout.groupBy(surface.matching, w => w.workspace)) {
+        for (const slot of Layout.spread(group.windows, area, options)) {
+          byKey[slot.key] = {
+            x: slot.x + surface.padding,
+            y: slot.y + surface.stripHeight + surface.padding,
+            w: slot.w,
+            h: slot.h,
+          }
         }
       }
       return byKey
@@ -350,13 +384,17 @@ PanelWindow {
 
     // ------------------------------------------------------------ the windows
     Repeater {
-      model: surface.windows
+      model: surface.monitorWindows
 
       delegate: Item {
         id: card
         required property var modelData
         readonly property var slot: surface.slots[card.modelData.key] || null
-        readonly property bool shown: overlay.matches(card.modelData)
+        // On the desktop being shown, which peeking changes without rebuilding
+        // anything: the card is already here, it just fades in.
+        readonly property bool here: overlay.everything
+                                     || card.modelData.workspace === surface.shownWorkspace
+        readonly property bool shown: card.here && overlay.matches(card.modelData)
         readonly property bool hovered: hover.hovered && overlay.active
         readonly property bool picked: card.hovered || overlay.selectedKey === card.modelData.key
         readonly property bool dragging: dragger.active
@@ -416,7 +454,17 @@ PanelWindow {
 
           Connections {
             target: overlay
-            function onBeatChanged() { shot.captureFrame() }
+            // Only the cards you can actually see are worth a frame; the rest
+            // are kept alive purely so that showing them is instant.
+            function onBeatChanged() { if (card.shown) shot.captureFrame() }
+          }
+
+          // Coming into view does not wait for the next beat. Without this a
+          // card that has just been peeked at shows its placeholder until the
+          // clock comes round, which is the blank tile people saw.
+          Connections {
+            target: card
+            function onShownChanged() { if (card.shown) shot.captureFrame() }
           }
         }
 
