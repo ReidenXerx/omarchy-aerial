@@ -277,6 +277,9 @@ PanelWindow {
             // An untouched workspace says so, instead of looking broken — and
             // the one past the end offers itself.
             Text {
+              // Window titles are somebody else's string: a browser tab can put
+              // anything in one. Rendered literally, never interpreted as markup.
+              textFormat: Text.PlainText
               anchors.centerIn: parent
               visible: space.plan.length === 0
               text: space.modelData.fresh ? "\u002b" : "empty"
@@ -299,6 +302,9 @@ PanelWindow {
           }
 
           Text {
+            // Window titles are somebody else's string: a browser tab can put
+            // anything in one. Rendered literally, never interpreted as markup.
+            textFormat: Text.PlainText
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.bottom
             anchors.topMargin: 6
@@ -481,6 +487,9 @@ PanelWindow {
           Behavior on opacity { NumberAnimation { duration: 110 } }
 
           Text {
+            // Window titles are somebody else's string: a browser tab can put
+            // anything in one. Rendered literally, never interpreted as markup.
+            textFormat: Text.PlainText
             anchors.centerIn: parent
             text: "×"
             color: "#F4F1E9"
@@ -522,6 +531,9 @@ PanelWindow {
             }
 
             Text {
+              // Window titles are somebody else's string: a browser tab can put
+              // anything in one. Rendered literally, never interpreted as markup.
+              textFormat: Text.PlainText
               anchors.verticalCenter: parent.verticalCenter
               width: Math.min(implicitWidth, card.width - 40)
               text: card.modelData.title
@@ -550,6 +562,9 @@ PanelWindow {
       opacity: overlay.veil
 
       Text {
+        // Window titles are somebody else's string: a browser tab can put
+        // anything in one. Rendered literally, never interpreted as markup.
+        textFormat: Text.PlainText
         id: query
         anchors.centerIn: parent
         text: overlay.filter + "   " + surface.shownWindows.length
