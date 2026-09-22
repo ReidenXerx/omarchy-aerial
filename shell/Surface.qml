@@ -65,8 +65,15 @@ PanelWindow {
   }
 
   // The ones the spread is laid out from: this desktop's, or every one of them.
+  // Typing is a search, not a filter. Asking "where is that terminal" and being
+  // told only about this desktop is the wrong answer to the question -- the
+  // window you cannot find is, almost by definition, not the one in front of
+  // you. So the moment there is something to search for, every desktop is in
+  // scope; clear the text and it narrows back to where you are.
+  readonly property bool searching: !overlay.everything && overlay.filter !== ""
+
   readonly property var windows: {
-    if (overlay.everything) return surface.monitorWindows
+    if (overlay.everything || surface.searching) return surface.monitorWindows
     const out = []
     for (const win of surface.monitorWindows) {
       if (win.workspace !== surface.shownWorkspace) continue
@@ -134,6 +141,22 @@ PanelWindow {
     const options = { gap: 26, rowGap: 62, maxScale: 0.78 }
 
     const byKey = ({})
+
+    // While searching, the matches are one set and get one spread. Peeking lays
+    // every desktop into this same area so switching between them is a
+    // crossfade -- which is right until two desktops are on screen at once, and
+    // then it stacks them on top of each other.
+    if (surface.searching) {
+      for (const slot of Layout.spread(surface.matching, area, options)) {
+        byKey[slot.key] = {
+          x: slot.x + surface.padding,
+          y: slot.y + surface.stripHeight + surface.padding,
+          w: slot.w,
+          h: slot.h,
+        }
+      }
+      return byKey
+    }
 
     if (!overlay.everything) {
       // Every desktop is laid out, not just the one on screen, each into the
@@ -392,7 +415,7 @@ PanelWindow {
         readonly property var slot: surface.slots[card.modelData.key] || null
         // On the desktop being shown, which peeking changes without rebuilding
         // anything: the card is already here, it just fades in.
-        readonly property bool here: overlay.everything
+        readonly property bool here: overlay.everything || surface.searching
                                      || card.modelData.workspace === surface.shownWorkspace
         readonly property bool shown: card.here && overlay.matches(card.modelData)
         readonly property bool hovered: hover.hovered && overlay.active
@@ -576,6 +599,30 @@ PanelWindow {
               implicitSize: Math.round(Style.font.caption * 1.35)
               source: card.icon
               visible: card.icon !== ""
+            }
+
+            // Which desktop a match came from, shown only when that is news:
+            // while searching, and only for a window that is not on the one you
+            // are already looking at.
+            Rectangle {
+              anchors.verticalCenter: parent.verticalCenter
+              visible: surface.searching
+                       && card.modelData.workspace !== surface.shownWorkspace
+              implicitWidth: elsewhere.implicitWidth + 12
+              implicitHeight: elsewhere.implicitHeight + 4
+              radius: 4
+              color: Qt.rgba(1, 1, 1, 0.14)
+
+              Text {
+                id: elsewhere
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: card.modelData.workspace
+                color: "#F7F4EC"
+                font.family: Style.font.family
+                font.pixelSize: Math.round(Style.font.caption * 0.9)
+                font.weight: Font.DemiBold
+              }
             }
 
             Text {
