@@ -339,11 +339,29 @@ Scope {
     if (next) root.selectedKey = next
   }
 
-  /** The one window left standing, if the filter has narrowed it to one. */
-  function onlyMatch() {
+  /** What enter acts on: the selection, as long as the filter leaves it
+      standing, and otherwise the first window that it does.
+
+      The selection is seeded with the window you were already using, so that
+      enter straight away puts you back. Typing has to move it: a selection left
+      behind on a window the filter has hidden is invisible, and enter on an
+      invisible selection re-focuses the window you started from -- which is
+      what "type a name, press enter" used to do, silently, whenever the window
+      you were looking for was on another desktop. */
+  function enterTarget() {
     const surface = root.leadSurface
-    if (!surface || surface.shownWindows.length !== 1) return ""
-    return surface.shownWindows[0].key
+    if (!surface) return root.selectedKey
+    const shown = surface.shownWindows
+    if (!shown.length) return ""            // nothing matches: enter has nothing to act on
+    if (root.selectedKey && shown.some(w => w.key === root.selectedKey)) return root.selectedKey
+    return shown[0].key
+  }
+
+  // Typing moves the selection with it, so what enter will do is also what you
+  // can see highlighted, rather than something decided off-screen.
+  onFilterChanged: {
+    const target = root.enterTarget()
+    if (target) root.selectedKey = target
   }
 
   function onKey(event) {
@@ -374,7 +392,7 @@ Scope {
     case Qt.Key_Enter:
       // Typing until one window is left and pressing enter is the fastest way
       // through here, so that case does not need aiming first.
-      root.focusWindow(root.selectedKey || root.onlyMatch())
+      root.focusWindow(root.enterTarget())
       break
     case Qt.Key_W:
       if (event.modifiers & Qt.ControlModifier) root.closeWindow(root.selectedKey)
