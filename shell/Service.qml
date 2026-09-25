@@ -389,6 +389,32 @@ Item {
   // the settings panel; it costs GPU time while the overview is up.
   property bool frost: true
 
+  // ---------------------------------------------------------- recording keys
+
+  // The settings panel is listening for a shortcut: Hyprland's bindings are
+  // parked in an empty submap meanwhile (see app/gesture.lua), so a combination
+  // that is already taken reaches the panel instead of running.
+  property bool recording: false
+
+  Process { id: submapLua }
+
+  function setRecording(on) {
+    service.recording = on
+    submapLua.command = ["/usr/bin/hyprctl", "eval",
+                         'hl.dispatch(hl.dsp.submap("' + (on ? "aerial-record" : "reset") + '"))']
+    submapLua.running = true
+    if (on) recordingLimit.restart()
+    else recordingLimit.stop()
+  }
+
+  // Never left in the submap: however the panel stops listening — or fails
+  // to — the keyboard comes back.
+  Timer {
+    id: recordingLimit
+    interval: 10000
+    onTriggered: service.setRecording(false)
+  }
+
   readonly property string sideways: service.open || service.deskSwipe ? "slide"
                                    : (!service.showing ? "none" : "")
   property string sidewaysSent: ""
@@ -580,6 +606,14 @@ Item {
 
     function onRawEvent(event) {
       const name = event.name || ""
+
+      // Left the recording submap some other way (Escape does, in the
+      // compositor): stop listening.
+      if (name === "submap" && service.recording && event.data !== "aerial-record") {
+        service.recording = false
+        recordingLimit.stop()
+        return
+      }
 
       if (name === "configreloaded") {
         // A reload drops runtime gestures the same way it drops runtime binds.

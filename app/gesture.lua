@@ -229,6 +229,21 @@ if _G.__aerial_registered then
   end
 end
 
+-- Recording a shortcut in the settings panel. Hyprland acts on a bound key
+-- before any window sees it, so a combination that is already taken — the
+-- very case the panel exists to warn about — would run its action instead
+-- of being recorded. While recording, the shell switches to this submap,
+-- which binds nothing that matters: every key goes to the panel. Escape
+-- always leaves it, however recording ended. (A submap with no bindings at
+-- all is not registered, hence the one that can never be pressed.)
+if not _G.__aerial_submap then
+  hl.define_submap("aerial-record", function()
+    hl.bind("Escape", hl.dsp.submap("reset"))
+    hl.bind("SUPER + CTRL + ALT + SHIFT + F24", hl.dsp.no_op())
+  end)
+  _G.__aerial_submap = true
+end
+
 -- Three fingers is this workspace; four is every window you have open, the
 -- same split macOS makes between Mission Control and All Windows.
 hl.gesture({ fingers = 3, direction = "up",   action = both(vertical("up")) })

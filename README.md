@@ -78,11 +78,27 @@ omarchy-restart-shell
 The three-finger gestures work immediately — the plugin registers them with
 Hyprland when the shell starts, and again after a config reload.
 
-For the keyboard shortcut, add this to `~/.config/hypr/bindings.lua`:
+## Settings
 
-```lua
-o.bind("SUPER + A", "Window overview", "omarchy-shell shell toggle reidenxerx.aerial")
-```
+Aerial puts a button on the bar (right-click it to open the overview). Its
+panel has:
+
+- **Frosted glass** — see-through windows keep Hyprland's blur behind them
+  in the overview, computed the way Hyprland computes it. Costs GPU time.
+- **Swipe between desktops** — three fingers sideways on the desktop slide to
+  the next one with the overview's spring. Omarchy turns Hyprland's workspace
+  animation off, so its own swipe snaps; this one does not, and the keyboard
+  stays instant.
+- **Shortcuts** for opening the overview and for the previous / next desktop
+  (which slide, the way a swipe does). Click one and press the keys — even a
+  combination Hyprland already uses, which it will say, and name. Nothing is
+  written until **Save**, which puts them in a section of their own at the end
+  of `~/.config/hypr/bindings.lua`, between `-- >>> aerial` and
+  `-- <<< aerial`; the rest of the file is left alone. A combination that
+  something else has is taken over, the way Omarchy's file says to: unbind,
+  then bind.
+
+If the button is not on the bar: `omarchy bar put reidenxerx.aerial`.
 
 ## Tuning
 

@@ -18,11 +18,24 @@
   ],
   "kinds": [
     "service",
-    "overlay"
+    "overlay",
+    "bar-widget"
   ],
   "keepLoaded": true,
   "entryPoints": {
     "service": "shell/Service.qml",
-    "overlay": "shell/Overlay.qml"
+    "overlay": "shell/Overlay.qml",
+    "barWidget": "shell/Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Aerial",
+    "description": "Settings for the Aerial window overview: frosted glass, desktop swipes and keyboard shortcuts.",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "frost": true,
+      "deskSwipe": true
+    }
   }
 }
