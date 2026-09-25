@@ -58,13 +58,11 @@ PanelWindow {
   // Live: redrawn whenever what it covers changes, which during a swipe is
   // every frame. A machine that struggles wants the `polish` branch.
   readonly property bool glass: overlay.deco.blur === true && overlay.frost
-  // Measured, not derived: against screenshots of Hyprland blurring a
-  // floating terminal over a static scene, the port matched best — to within
-  // one level of brightness — with the blur a quarter larger than configured.
-  // (It measured as twice, back when the blur ran at the shell's own pixel
-  // ratio of 2 rather than the monitor's 1.25; this is the same blur on
-  // screen.) Everything else it takes as configured.
-  readonly property real blurScale: 1.25
+  // Hyprland's blur size as configured. Checked against screenshots of
+  // Hyprland frosting a see-through terminal over a static page: with the
+  // blur run at the monitor's own scale (see `hyprScale`) the port matches
+  // best with no correction at all.
+  readonly property real blurScale: 1
 
   // A floating window's card is on screen, so the blur behind floating
   // windows — which includes the tiled ones — has to run.
