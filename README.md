@@ -147,6 +147,13 @@ by looking at it:
 node tests/layout-test.js
 ```
 
+`app/Shortcuts.js`, which reads and writes the settings panel's section of the
+bindings file and spots clashes, is tested the same way:
+
+```bash
+node tests/shortcuts-test.js
+```
+
 ## What it touches
 
 Nothing on disk. The plugin writes no files and keeps no state.
